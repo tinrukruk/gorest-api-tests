@@ -1,0 +1,563 @@
+{
+  "info": {
+    "_postman_id": "0c39a062-8add-499f-91df-fa981ba12496",
+    "name": "QA_EXAM",
+    "description": "### Welcome to Postman! This is your first collection. \n\nCollections are your starting point for building and testing APIs. You can use this one to:\n\n• Group related requests\n• Test your API in real-world scenarios\n• Document and share your requests\n\nUpdate the name and overview whenever you’re ready to make it yours.\n\n[Learn more about Postman Collections.](https://learning.postman.com/docs/collections/collections-overview/)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "53529741",
+    "_collection_link": "https://go.postman.co/collection/53529741-0c39a062-8add-499f-91df-fa981ba12496?source=collection_link"
+  },
+  "item": [
+    {
+      "name": "User list",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", () => {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const users = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Each user has id, name, and email\", () => {\r",
+              "    users.forEach(user => {\r",
+              "        pm.expect(user).to.have.all.keys('id', 'name', 'email', 'gender', 'status');\r",
+              "        pm.expect(user.id).to.be.a('number');\r",
+              "        pm.expect(user.name).to.be.a('string').and.not.empty;\r",
+              "        pm.expect(user.email).to.be.a('string').and.not.empty;\r",
+              "    });\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Count users with status = active\", () => {\r",
+              "    const activeUsers = users.filter(user => user.status === \"active\");\r",
+              "    const activeCount = activeUsers.length;\r",
+              "    \r",
+              "    console.log(`Active users: ${activeCount}`);\r",
+              "    pm.environment.set(\"active_users_count\", activeCount);\r",
+              "    \r",
+              "    // Assert all filtered users are actually active\r",
+              "    activeUsers.forEach(user => {\r",
+              "        pm.expect(user.status).to.eql(\"active\");\r",
+              "    });\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": "",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XGET \"https://gorest.co.in/public/v2/users\""
+      },
+      "response": []
+    },
+    {
+      "name": "Create user",
+      "event": [
+        {
+          "listen": "prerequest",
+          "script": {
+            "exec": [
+              "pm.test(\"Set current date and time\", function () {\r",
+              "    const now = new Date();\r",
+              "    \r",
+              "    const formattedDateTime = \r",
+              "        now.getFullYear() +\r",
+              "        String(now.getMonth() + 1).padStart(2, '0') +\r",
+              "        String(now.getDate()).padStart(2, '0') +\r",
+              "        String(now.getHours()).padStart(2, '0') +\r",
+              "        String(now.getMinutes()).padStart(2, '0') +\r",
+              "        String(now.getSeconds()).padStart(2, '0') +\r",
+              "        String(now.getMilliseconds()).padStart(3, '0');\r",
+              "    \r",
+              "    console.log(\"Timestamp with ms: \" + formattedDateTime);\r",
+              "    pm.environment.set(\"currentDateTime\", formattedDateTime);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        },
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 201\", function () {\r",
+              "    pm.response.to.have.status(201);\r",
+              "});\r",
+              "\r",
+              "const response = pm.response.json();\r",
+              "pm.environment.set(\"user_id\", response.id);\r",
+              "const currentDateTime = pm.environment.get(\"currentDateTime\");\r",
+              "\r",
+              "// Validate response matches payload\r",
+              "pm.test(\"Response matches payload values\", function () {\r",
+              "    pm.expect(response.name).to.eql(\"Ruksith Y\");\r",
+              "    pm.expect(response.email).to.eql(`ruksith.${currentDateTime}@testmail.com`);\r",
+              "    pm.expect(response.gender).to.eql(\"male\");\r",
+              "    pm.expect(response.status).to.eql(\"inactive\");\r",
+              "});\r",
+              "\r",
+              "// Save response body for later comparison\r",
+              "pm.environment.set(\"created_user\", JSON.stringify(response));"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "POST",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "",
+            "disabled": true
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Ruksith Y\", \"gender\":\"male\", \"email\":\"ruksith.{{currentDateTime}}@testmail.com\", \"status\":\"inactive\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/users",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users"
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XPOST \"https://gorest.co.in/public/v2/users\" -d '{\"name\":\"Tenali Ramakrishna\", \"gender\":\"male\", \"email\":\"tenali.ramakrishna@15ce.com\", \"status\":\"active\"}'"
+      },
+      "response": []
+    },
+    {
+      "name": "Verify user created",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const response = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Response contains correct user ID\", function () {\r",
+              "    pm.expect(response.id).to.eql(parseInt(pm.environment.get(\"user_id\")));\r",
+              "});\r",
+              "\r",
+              "// Get user_id from environment and parse saved created_user\r",
+              "const createdUser = JSON.parse(pm.environment.get(\"created_user\"));\r",
+              "\r",
+              "pm.test(\"GET response matches POST response\", function () {\r",
+              "    pm.expect(response.id).to.eql(createdUser.id);\r",
+              "    pm.expect(response.name).to.eql(createdUser.name);\r",
+              "    pm.expect(response.email).to.eql(createdUser.email);\r",
+              "    pm.expect(response.gender).to.eql(createdUser.gender);\r",
+              "    pm.expect(response.status).to.eql(createdUser.status);\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Validate user status is inactive\", function () {\r",
+              "    pm.expect(response.status).to.eql(\"inactive\");\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ],
+          "query": [
+            {
+              "key": "",
+              "value": "",
+              "type": "text",
+              "disabled": true
+            }
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XGET \"https://gorest.co.in/public/v2/users\""
+      },
+      "response": []
+    },
+    {
+      "name": "Update user info",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", function () {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const response = pm.response.json();\r",
+              "\r",
+              "pm.test(\"Response matches payload values\", function () {\r",
+              "    pm.expect(response.name).to.eql(\"Ruksith Edited\");\r",
+              "    pm.expect(response.email).to.eql(`ruksith.edited@testmail.com`);\r",
+              "    pm.expect(response.gender).to.eql(\"male\");\r",
+              "    pm.expect(response.status).to.eql(\"active\");\r",
+              "});\r",
+              "\r",
+              "// Save response body for later comparison\r",
+              "pm.environment.set(\"updated_user\", JSON.stringify(response));"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\"name\":\"Ruksith Edited\", \"gender\":\"male\", \"email\":\"ruksith.edited@testmail.com\", \"status\":\"active\"}",
+          "options": {
+            "raw": {
+              "language": "json"
+            }
+          }
+        },
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XPATCH \"https://gorest.co.in/public/v2/users/7965766\" -d '{\"name\":\"Allasani Peddana\", \"email\":\"allasani.peddana@15ce.com\", \"status\":\"active\"}'"
+      },
+      "response": []
+    },
+    {
+      "name": "User list of active users",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 200\", () => {\r",
+              "    pm.response.to.have.status(200);\r",
+              "});\r",
+              "\r",
+              "const users = pm.response.json();\r",
+              "const updatedUser = JSON.parse(pm.environment.get(\"updated_user\"));\r",
+              "const targetUserId = updatedUser.id;\r",
+              "\r",
+              "const targetUser = users.find(user => user.id === targetUserId);\r",
+              "\r",
+              "//Verify the user details match the updated user\r",
+              "pm.test(\"GET response matches PUT response for updated user\", function () {\r",
+              "    if (targetUser) {\r",
+              "        pm.expect(targetUser.id).to.eql(updatedUser.id);\r",
+              "        pm.expect(targetUser.name).to.eql(updatedUser.name);\r",
+              "        pm.expect(targetUser.email).to.eql(updatedUser.email);\r",
+              "        pm.expect(targetUser.gender).to.eql(updatedUser.gender);\r",
+              "        pm.expect(targetUser.status).to.eql(updatedUser.status);\r",
+              "    }\r",
+              "});\r",
+              "\r",
+              "pm.test(\"Count users with status = active\", () => {\r",
+              "    const activeUsers = users.filter(user => user.status === \"active\");\r",
+              "    const activeCount = activeUsers.length;\r",
+              "    console.log(`Active users: ${activeCount}`);\r",
+              "    pm.environment.set(\"new_active_users_count\", activeCount);\r",
+              "    pm.expect(pm.environment.get(\"new_active_users_count\")).to.not.eql(pm.environment.get(\"active_users_count\"));\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "GET",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Authorization",
+            "value": "Bearer {{bearer_token}}",
+            "disabled": true
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/users?status=active",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users"
+          ],
+          "query": [
+            {
+              "key": "status",
+              "value": "active",
+              "type": "text"
+            }
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XGET \"https://gorest.co.in/public/v2/users\""
+      },
+      "response": []
+    },
+    {
+      "name": "Delete user",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 204\", () => {\r",
+              "    pm.response.to.have.status(204);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XDELETE \"https://gorest.co.in/public/v2/users/7965766\""
+      },
+      "response": []
+    },
+    {
+      "name": "Try to delete user again",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "pm.test(\"Status code is 404\", () => {\r",
+              "    pm.response.to.have.status(404);\r",
+              "});"
+            ],
+            "type": "text/javascript",
+            "packages": {},
+            "requests": {}
+          }
+        }
+      ],
+      "request": {
+        "auth": {
+          "type": "bearer",
+          "bearer": [
+            {
+              "key": "token",
+              "value": "{{bearer_token}}",
+              "type": "string"
+            }
+          ]
+        },
+        "method": "DELETE",
+        "header": [
+          {
+            "key": "Accept",
+            "value": "application/json"
+          },
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "url": {
+          "raw": "{{base_url}}/users/{{user_id}}",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "users",
+            "{{user_id}}"
+          ]
+        },
+        "description": "Generated from cURL: curl -i -H \"Accept:application/json\" -H \"Content-Type:application/json\" -H \"Authorization: Bearer 0a5c2f7519a2197e7f69d3ee628fa33bf772f4fd94a60ff23e1ab14509127b73\" -XDELETE \"https://gorest.co.in/public/v2/users/7965766\""
+      },
+      "response": []
+    }
+  ]
+}
